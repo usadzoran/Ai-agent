@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My AI Agent</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -48,6 +51,7 @@
       margin-bottom: 12px;
       border-radius: 12px;
       line-height: 1.7;
+      white-space: pre-wrap;
     }
 
     .user {
@@ -63,18 +67,27 @@
       border-top: 1px solid #334155;
       display: flex;
       gap: 10px;
+      position: sticky;
+      bottom: 0;
+      background: #0f172a;
     }
 
     textarea {
       flex: 1;
       resize: none;
       min-height: 55px;
+      max-height: 150px;
       padding: 12px;
       border-radius: 10px;
       border: 1px solid #475569;
       background: #1e293b;
       color: white;
       font-size: 16px;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #3b82f6;
     }
 
     button {
@@ -85,6 +98,15 @@
       color: white;
       font-size: 16px;
       cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .typing {
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -99,54 +121,157 @@
   </header>
 
   <main id="messages">
+
     <div class="message agent">
-      مرحباً! أنا وكيلك الذكي. اكتب لي المهمة التي تريد تنفيذها.
+      مرحباً! أنا وكيلك الذكي.
+      اكتب لي المهمة التي تريد تنفيذها.
     </div>
+
   </main>
 
   <div class="input-area">
-    <textarea id="input" placeholder="اكتب المهمة هنا..."></textarea>
-    <button onclick="sendMessage()">إرسال</button>
+
+    <textarea
+      id="input"
+      placeholder="اكتب المهمة هنا..."
+      autocomplete="off"
+    ></textarea>
+
+    <button id="sendButton" onclick="sendMessage()">
+      إرسال
+    </button>
+
   </div>
 
 </div>
 
 <script>
+
 async function sendMessage() {
+
   const input = document.getElementById("input");
   const messages = document.getElementById("messages");
+  const button = document.getElementById("sendButton");
 
   const text = input.value.trim();
 
   if (!text) return;
 
+  // عرض رسالة المستخدم
   messages.innerHTML += `
     <div class="message user">
       ${escapeHtml(text)}
     </div>
   `;
 
+  // تنظيف مربع الكتابة
   input.value = "";
 
-  messages.innerHTML += `
-    <div class="message agent" id="loading">
-      جاري التفكير...
-    </div>
-  `;
+  // تعطيل الزر أثناء المعالجة
+  button.disabled = true;
 
-  // سنربط الذكاء الاصطناعي هنا في الخطوة التالية
-  setTimeout(() => {
-    document.getElementById("loading").innerHTML =
-      "تم استلام المهمة. في الخطوة التالية سنربطني بنموذج الذكاء الاصطناعي الحقيقي.";
-  }, 500);
+  // رسالة الانتظار
+  const loading = document.createElement("div");
+
+  loading.className = "message agent typing";
+  loading.id = "loading";
+  loading.textContent = "جاري التفكير...";
+
+  messages.appendChild(loading);
+
+  scrollToBottom();
+
+  try {
+
+    const response = await fetch("/api/chat", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        message: text
+      })
+
+    });
+
+    const data = await response.json();
+
+    const loadingMessage =
+      document.getElementById("loading");
+
+    if (!response.ok) {
+
+      loadingMessage.textContent =
+        data.error || "حدث خطأ أثناء الاتصال بالوكيل.";
+
+    } else {
+
+      loadingMessage.classList.remove("typing");
+
+      loadingMessage.textContent =
+        data.reply || "لم أحصل على إجابة من الوكيل.";
+
+    }
+
+  } catch (error) {
+
+    const loadingMessage =
+      document.getElementById("loading");
+
+    loadingMessage.textContent =
+      "تعذر الاتصال بالوكيل. تأكد من أن Backend يعمل بشكل صحيح.";
+
+    console.error(error);
+
+  } finally {
+
+    button.disabled = false;
+
+    scrollToBottom();
+
+    input.focus();
+  }
 }
 
+
+// السماح بالإرسال بواسطة Ctrl + Enter
+document.getElementById("input").addEventListener(
+  "keydown",
+  function(event) {
+
+    if (event.ctrlKey && event.key === "Enter") {
+      sendMessage();
+    }
+
+  }
+);
+
+
+// حماية النص من HTML
 function escapeHtml(text) {
+
   const div = document.createElement("div");
+
   div.textContent = text;
+
   return div.innerHTML;
 }
+
+
+// النزول إلى آخر رسالة
+function scrollToBottom() {
+
+  const messages =
+    document.getElementById("messages");
+
+  messages.scrollTop =
+    messages.scrollHeight;
+}
+
 </script>
 
 </body>
-  </html>
+</html>
