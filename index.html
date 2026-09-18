@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My AI Agent</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+    }
+
+    .app {
+      max-width: 800px;
+      margin: auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 20px;
+      border-bottom: 1px solid #334155;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    header p {
+      color: #94a3b8;
+      margin-bottom: 0;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .message {
+      padding: 14px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      line-height: 1.7;
+    }
+
+    .user {
+      background: #1e293b;
+    }
+
+    .agent {
+      background: #172554;
+    }
+
+    .input-area {
+      padding: 15px;
+      border-top: 1px solid #334155;
+      display: flex;
+      gap: 10px;
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+      min-height: 55px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: white;
+      font-size: 16px;
+    }
+
+    button {
+      width: 90px;
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header>
+    <h1>🤖 My AI Agent</h1>
+    <p>مساعدك الشخصي للمشاريع والمهام</p>
+  </header>
+
+  <main id="messages">
+    <div class="message agent">
+      مرحباً! أنا وكيلك الذكي. اكتب لي المهمة التي تريد تنفيذها.
+    </div>
+  </main>
+
+  <div class="input-area">
+    <textarea id="input" placeholder="اكتب المهمة هنا..."></textarea>
+    <button onclick="sendMessage()">إرسال</button>
+  </div>
+
+</div>
+
+<script>
+async function sendMessage() {
+  const input = document.getElementById("input");
+  const messages = document.getElementById("messages");
+
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  messages.innerHTML += `
+    <div class="message user">
+      ${escapeHtml(text)}
+    </div>
+  `;
+
+  input.value = "";
+
+  messages.innerHTML += `
+    <div class="message agent" id="loading">
+      جاري التفكير...
+    </div>
+  `;
+
+  // سنربط الذكاء الاصطناعي هنا في الخطوة التالية
+  setTimeout(() => {
+    document.getElementById("loading").innerHTML =
+      "تم استلام المهمة. في الخطوة التالية سنربطني بنموذج الذكاء الاصطناعي الحقيقي.";
+  }, 500);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+  </html>
